@@ -48,7 +48,8 @@ def make_request(url, return_soup=True):
         return BeautifulSoup(r.text), r.text
     return r
 
-
+import re
+keywords_re = re.compile('keywords=([^&])')
 def format_url(url):
     # make sure URLs aren't relative, and strip unnecssary query args
     u = urlparse(url)
@@ -56,17 +57,20 @@ def format_url(url):
     scheme = u.scheme or "https"
     host = u.netloc or "www.amazon.com"
     path = u.path
-
+    kwrds = keywords_re.findall(url)
     if not u.query:
         query = ""
     else:
         query = "?"
         for piece in u.query.split("&"):
-            k, v = piece.split("=")
+            z = piece.split("=")
+            k = z[0]
+            v = z[1]
             if k in settings.allowed_params:
                 query += "{k}={v}&".format(**locals())
         query = query[:-1]
-
+    if kwrds:
+       query = "rh="+kwrds[0]+"&keywords="+kwrds[0]
     return "{scheme}://{host}{path}{query}".format(**locals())
 
 
